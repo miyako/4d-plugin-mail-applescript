@@ -13,7 +13,7 @@ Get the source (MIME) of selected emails from Apple Mail via [Scripting Bridge](
 
 ### Releases
 
-[1.0](https://github.com/miyako/4d-plugin-mail-applescript/releases/tag/1.0)
+[1.1](https://github.com/miyako/4d-plugin-mail-applescript/releases/tag/1.1)
 
 ## Syntax
 
@@ -74,3 +74,21 @@ NSArray *identifiers = [selection valueForKey:@"id"];
 ``` 
 
 This is because ``id`` is a special keyword in ``objc`` and throws an error.
+
+If ``Mail selection source`` or ``Mail selection id`` is passed, a JSON array of string or number is returned. You can use ``JSON Parse`` with ``Is collection`` to parse it as a collection. (default=``Mail selection source``)
+
+If ``Mail selection source`` and ``Mail selection id`` are passed, a JSON array of object is returned. You can use JSON PARSE ARRAY to parse it as an object array. This option is for versions that do not support objection notation or collections.
+
+```
+C_COLLECTION($s;$i)
+ARRAY OBJECT($m;0)
+
+$json:=Mail Get selection (Mail selection id | Mail selection source)
+JSON PARSE ARRAY($json;$m)
+
+$json:=Mail Get selection (Mail selection source)
+$s:=JSON Parse($json;Is collection)
+
+$json:=Mail Get selection (Mail selection id)
+$i:=JSON Parse($json;Is collection)
+```
