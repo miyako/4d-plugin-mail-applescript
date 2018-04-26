@@ -163,36 +163,40 @@ void Mail_Get_selection(sLONG_PTR *pResult, PackagePtr pParams)
 	
 	@autoreleasepool
 	{
-		
 		mailApplication *application = [SBApplication applicationWithBundleIdentifier:@"com.apple.mail"];
-		
 		SBElementArray *selection = [application selection];
-		
+
 		switch (Param1.getIntValue()) {
 			case 2:
 			{
-				NSArray *identifiers = [selection valueForKey:@"id"];
-				for (id identifier in identifiers) {
-					json_set_i(json, identifier);
+				@autoreleasepool
+				{
+					/*
+					 //valueForKey: crashes when the DB is reopened without restarting 4D
+					 NSArray *identifiers = [selection valueForKey:@"id"];
+					 for (id identifier in identifiers) {
+					 json_set_i(json, identifier);
+					 }
+					 */
 				}
 			}
 				break;
 			case 3:
 			{
 				NSArray *sources = [selection arrayByApplyingSelector:@selector(source)];
-				NSArray *identifiers = [selection valueForKey:@"id"];
+//				NSArray *identifiers = [selection valueForKey:@"id"];
 				
-				if([sources count] == [identifiers count])
-				{
+//				if([sources count] == [identifiers count])
+//				{
 					for(NSUInteger i = 0; i < [sources count];++i)
 					{
 						JSONNODE *n = json_new(JSON_NODE);
-						json_set_i(n, L"id", (NSNumber *)[identifiers objectAtIndex:i]);
+//						json_set_i(n, L"id", (NSNumber *)[identifiers objectAtIndex:i]);
 						json_set_s(n, L"source", (NSString *)[sources objectAtIndex:i]);
 						json_push_back(json, n);
 						PA_YieldAbsolute();
 					}
-				}
+//				}
 			}
 				break;
 			default:
@@ -204,7 +208,7 @@ void Mail_Get_selection(sLONG_PTR *pResult, PackagePtr pParams)
 			}
 				break;
 		}
-		
+
 	}/* necessary because 4D might reopen the DB without restarting */
 	
 	json_stringify(json, returnValue);
