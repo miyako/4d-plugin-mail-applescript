@@ -25,3 +25,22 @@ Parameter|Type|Description
 ------------|------------|----
 mode|LONGINT|``Mail selection source`` or ``Mail selection id``
 selection|TEXT|``JSON`` collection which is an array of source text or message id
+
+### Discussion
+
+The objective is to import email directly from the Mail app via drag and drop. 
+
+In applescript one could do something like this:
+
+```applescript
+tell application "Mail"
+	set ss to {}
+	set sel to selection
+	repeat with s in sel
+		set ss to ss & {source:source of s, id:id of s}
+	end repeat
+	ss
+end tell
+```
+
+Note that ``selection`` must be stored in a variable as a reference. You can't pass it directly in ``repeat``. Also, it is necessary to iterate over the messages in a loop. Evidently, you can't create an array (``list`` in applescript terminology) of ``sources`` in one call.
