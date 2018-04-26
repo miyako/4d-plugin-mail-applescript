@@ -13,7 +13,7 @@ Get the source (MIME) of selected emails from Apple Mail via [Scripting Bridge](
 
 ### Releases
 
-[1.4](https://github.com/miyako/4d-plugin-mail-applescript/releases/tag/1.4)
+[2.0](https://github.com/miyako/4d-plugin-mail-applescript/releases/tag/2.0)
 
 ## Syntax
 
@@ -23,8 +23,8 @@ selection:=Mail Get selection (mode)
 
 Parameter|Type|Description
 ------------|------------|----
-mode|LONGINT|``Mail selection source`` or ``Mail selection id``
-selection|TEXT|``JSON`` collection which is an array of source text or message id
+mode|LONGINT|``Mail selection source`` or ``Mail selection subject``
+selection|TEXT|``JSON`` array (collection or object, see below)
 
 ### Discussion
 
@@ -55,7 +55,7 @@ The plugin does a similar thing but using [SBApplication](https://developer.appl
 sdef /Applications/Mail.app | sdp -fh --basename mail
 ```
 
-The code to obtain the list of ``sources`` looks like this:
+The code to obtain the list of ``sources`` or ``subject`` looks like this:
 
 ```objc
 mailApplication *application = [SBApplication applicationWithBundleIdentifier:@"com.apple.mail"];
@@ -75,25 +75,19 @@ NSArray *identifiers = [selection valueForKey:@"id"];
 
 This is because ``id`` is a special keyword in ``objc`` and throws an error.
 
-If ``Mail selection source`` or ``Mail selection id`` is passed, a JSON array of string or number is returned. You can use ``JSON Parse`` with ``Is collection`` to parse it as a collection. (default=``Mail selection source``)
+**Note**: The above code evidently only works in the first database opened by 4D. If a database is reopened without restarting 4D, the app will crash. For this reason, the option ``id`` is disbled since ``2.0``.
 
-If ``Mail selection source`` and ``Mail selection id`` are passed, a JSON array of object is returned. You can use JSON PARSE ARRAY to parse it as an object array. This option is for versions that do not support objection notation or collections. This mode is inefficient compared to using collections.
+If ``Mail selection source`` **or** ``Mail selection subject`` is passed, a JSON array of string is returned. You can use ``JSON Parse`` with ``Is collection`` to parse it as a collection. (default=``Mail selection source``)
+
+If ``Mail selection source`` **and** ``Mail selection subject`` are passed (added), a JSON array of object is returned. You can use JSON PARSE ARRAY to parse it as an object array. This option is for versions that do not support objection notation or collections. This mode is somewhat inefficient compared to using collections.
 
 ```
 C_COLLECTION($s;$i)
 ARRAY OBJECT($m;0)
 
-$json:=Mail Get selection (Mail selection id | Mail selection source)
+$json:=Mail Get selection (Mail selection subject | Mail selection source)
 JSON PARSE ARRAY($json;$m)
 
 $json:=Mail Get selection (Mail selection source)
 $s:=JSON Parse($json;Is collection)
-
-If (False)
-	  //disabled (unstable when DB is reopened without restarting 4D
-	$json:=Mail Get selection (Mail selection id)
-	$i:=JSON Parse($json;Is collection)
-End if 
 ```
-
-**Note**: ``Mail selection id`` is disabled since ``1.4``
