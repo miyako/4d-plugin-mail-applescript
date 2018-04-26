@@ -169,34 +169,36 @@ void Mail_Get_selection(sLONG_PTR *pResult, PackagePtr pParams)
 		switch (Param1.getIntValue()) {
 			case 2:
 			{
-				@autoreleasepool
-				{
-					/*
-					 //valueForKey: crashes when the DB is reopened without restarting 4D
-					 NSArray *identifiers = [selection valueForKey:@"id"];
-					 for (id identifier in identifiers) {
-					 json_set_i(json, identifier);
-					 }
-					 */
+				 //valueForKey: crashes when the DB is reopened without restarting 4D; 
+				 //probably something inherently wrong about a non-object property named 'id'
+				/*
+				 NSArray *identifiers = [selection valueForKey:@"id"];
+				 for (id identifier in identifiers) {
+				 json_set_i(json, identifier);
+				 }
+				 */
+				NSArray *subjects = [selection arrayByApplyingSelector:@selector(subject)];
+				for (id subject in subjects) {
+					json_set_s(json, (NSString *)subject);
 				}
 			}
 				break;
 			case 3:
 			{
+				//NSArray *identifiers = [selection valueForKey:@"id"];
 				NSArray *sources = [selection arrayByApplyingSelector:@selector(source)];
-//				NSArray *identifiers = [selection valueForKey:@"id"];
-				
-//				if([sources count] == [identifiers count])
-//				{
+				NSArray *subjects = [selection arrayByApplyingSelector:@selector(subject)];
+
 					for(NSUInteger i = 0; i < [sources count];++i)
 					{
 						JSONNODE *n = json_new(JSON_NODE);
-//						json_set_i(n, L"id", (NSNumber *)[identifiers objectAtIndex:i]);
+						//json_set_i(n, L"id", (NSNumber *)[identifiers objectAtIndex:i]);
+						json_set_s(n, L"subject", (NSString *)[subjects objectAtIndex:i]);
 						json_set_s(n, L"source", (NSString *)[sources objectAtIndex:i]);
 						json_push_back(json, n);
 						PA_YieldAbsolute();
 					}
-//				}
+
 			}
 				break;
 			default:
@@ -209,7 +211,7 @@ void Mail_Get_selection(sLONG_PTR *pResult, PackagePtr pParams)
 				break;
 		}
 
-	}/* necessary because 4D might reopen the DB without restarting */
+	}
 	
 	json_stringify(json, returnValue);
 	json_delete(json);
