@@ -38,6 +38,35 @@ void json_stringify(JSONNODE *json, C_TEXT &t)
 	json_free(json_string);
 }
 
+void json_set_s(JSONNODE *n, const wchar_t *name, NSString *value)
+{
+	if(n)
+	{
+		C_TEXT t;
+		
+		if(value)
+			t.setUTF16String(value);
+		
+		std::wstring u32;
+		
+		uint32_t dataSize = (t.getUTF16Length() * sizeof(wchar_t))+ sizeof(wchar_t);
+		std::vector<char> buf(dataSize);
+		
+		PA_ConvertCharsetToCharset((char *)t.getUTF16StringPtr(),
+															 t.getUTF16Length() * sizeof(PA_Unichar),
+															 eVTC_UTF_16,
+															 (char *)&buf[0],
+															 dataSize,
+															 eVTC_UTF_32);
+		
+		u32 = std::wstring((wchar_t *)&buf[0]);
+		
+		JSONNODE *s = json_new(JSON_NODE);
+		
+		json_push_back(n, json_new_a(name, u32.c_str()));
+	}
+}
+
 void json_set_s(JSONNODE *n, NSString *value)
 {
 	if(n)
@@ -69,6 +98,14 @@ void json_set_s(JSONNODE *n, NSString *value)
 	}
 }
 
+void json_set_i(JSONNODE *n, const wchar_t *name, NSNumber *value)
+{
+	if(n)
+	{
+		json_push_back(n, json_new_i(name, [value intValue]));
+	}
+}
+
 void json_set_i(JSONNODE *n, NSNumber *value)
 {
 	if(n)
@@ -80,6 +117,9 @@ void json_set_i(JSONNODE *n, NSNumber *value)
 		json_push_back(n, i);
 	}
 }
+
+#pragma mark -
+
 void PluginMain(PA_long32 selector, PA_PluginParameters params)
 {
 	try
@@ -126,7 +166,7 @@ void Mail_Get_selection(sLONG_PTR *pResult, PackagePtr pParams)
 	SBElementArray *selection = [application selection];
 	
 	switch (Param1.getIntValue()) {
-  case 1:
+  case 2:
 		{
 			NSArray *identifiers = [selection valueForKey:@"id"];
 			for (id identifier in identifiers) {
@@ -134,7 +174,23 @@ void Mail_Get_selection(sLONG_PTR *pResult, PackagePtr pParams)
 			}
 		}
 			break;
+  case 3:
+		{
+			NSArray *sources = [selection arrayByApplyingSelector:@selector(source)];
+			NSArray *identifiers = [selection valueForKey:@"id"];
 			
+			if([sources count] == [identifiers count])
+			{
+				for(NSUInteger i = 0; i < [sources count];++i)
+				{
+					JSONNODE *n = json_new(JSON_NODE);
+					json_set_i(n, L"id", (NSNumber *)[identifiers objectAtIndex:i]);
+					json_set_s(n, L"source", (NSString *)[sources objectAtIndex:i]);
+					json_push_back(json, n);
+				}
+			}
+		}
+			break;
   default:
 		{
 			NSArray *sources = [selection arrayByApplyingSelector:@selector(source)];
