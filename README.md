@@ -13,7 +13,7 @@ Get the source (MIME) of selected emails from Apple Mail via [Scripting Bridge](
 
 ### Releases
 
-[1.2](https://github.com/miyako/4d-plugin-mail-applescript/releases/tag/1.2)
+[1.3](https://github.com/miyako/4d-plugin-mail-applescript/releases/tag/1.3)
 
 ## Syntax
 
