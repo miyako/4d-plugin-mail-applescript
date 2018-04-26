@@ -46,3 +46,31 @@ end tell
 Note that ``selection`` must be cast to a [``list``](https://developer.apple.com/library/content/documentation/AppleScript/Conceptual/AppleScriptLangGuide/reference/ASLR_classes.html#//apple_ref/doc/uid/TP40000983-CH1g-BBCDBHIE) in order to be used in a [``repeat``](https://developer.apple.com/library/content/documentation/AppleScript/Conceptual/AppleScriptLangGuide/reference/ASLR_control_statements.html#//apple_ref/doc/uid/TP40000983-CH6g-128481).
 
 The reason why ``copy {source:source of s, id:id of s} to the end of ss`` is faster than ``set ss to ss & {source:source of s, id:id of s}`` is explained in the [documentation](https://developer.apple.com/library/content/documentation/AppleScript/Conceptual/AppleScriptLangGuide/reference/ASLR_classes.html#//apple_ref/doc/uid/TP40000983-CH1g-BBCDBHIE).
+
+The plugin does a similar thing but using [SBApplication](https://developer.apple.com/documentation/scriptingbridge/sbapplication?language=objc). 
+
+``sdef`` and ``sdp`` were used to export the ``obj-c`` interface.
+
+```bash
+sdef /Applications/Mail.app | sdp -fh --basename mail
+```
+
+The code to obtain the list of ``sources`` looks like this:
+
+```objc
+mailApplication *application = [SBApplication applicationWithBundleIdentifier:@"com.apple.mail"];
+SBElementArray *selection = [application selection];
+NSArray *sources = [selection arrayByApplyingSelector:@selector(source)];
+``` 
+
+The reason why it is good to use ``SBElementArray`` to create a filtered array is explained in the [documentation](https://developer.apple.com/library/content/documentation/Cocoa/Conceptual/ScriptingBridgeConcepts/ImproveScriptingBridgePerf/ImproveScriptingBridgePerf.html#//apple_ref/doc/uid/TP40006104-CH6-SW1).
+
+The code to obtain the list of ``id`` is somewhat different:
+
+```objc
+mailApplication *application = [SBApplication applicationWithBundleIdentifier:@"com.apple.mail"];
+SBElementArray *selection = [application selection];
+NSArray *identifiers = [selection valueForKey:@"id"];
+``` 
+
+This is because ``id`` is a special keyword in ``objc`` and throws an error.
