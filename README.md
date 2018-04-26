@@ -43,4 +43,4 @@ tell application "Mail"
 end tell
 ```
 
-Note that ``selection`` must be stored in a variable as a reference. You can't pass it directly in ``repeat``. Also, it is necessary to iterate over the messages in a loop. Evidently, you can't create an array (``list`` in applescript terminology) of ``sources`` in one call.
+Note that ``selection`` must be stored in a variable as a reference. You can't pass it directly to [``repeat``](https://developer.apple.com/library/content/documentation/AppleScript/Conceptual/AppleScriptLangGuide/reference/ASLR_control_statements.html#//apple_ref/doc/uid/TP40000983-CH6g-128481). Also, it is necessary to iterate over the messages in a loop. Evidently, you can't create a [``list``](https://developer.apple.com/library/content/documentation/AppleScript/Conceptual/AppleScriptLangGuide/reference/ASLR_classes.html#//apple_ref/doc/uid/TP40000983-CH1g-BBCDBHIE) of ``sources`` in one call.
