@@ -13,7 +13,7 @@ Get the source (MIME) of selected emails from Apple Mail via [Scripting Bridge](
 
 ### Releases
 
-[1.3](https://github.com/miyako/4d-plugin-mail-applescript/releases/tag/1.3)
+[1.4](https://github.com/miyako/4d-plugin-mail-applescript/releases/tag/1.4)
 
 ## Syntax
 
@@ -89,6 +89,11 @@ JSON PARSE ARRAY($json;$m)
 $json:=Mail Get selection (Mail selection source)
 $s:=JSON Parse($json;Is collection)
 
-$json:=Mail Get selection (Mail selection id)
-$i:=JSON Parse($json;Is collection)
+If (False)
+	  //disabled (unstable when DB is reopened without restarting 4D
+	$json:=Mail Get selection (Mail selection id)
+	$i:=JSON Parse($json;Is collection)
+End if 
 ```
+
+**Note**: ``Mail selection id`` is disabled since ``1.4``
