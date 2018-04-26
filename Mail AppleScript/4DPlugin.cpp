@@ -161,45 +161,51 @@ void Mail_Get_selection(sLONG_PTR *pResult, PackagePtr pParams)
 	
 	Param1.fromParamAtIndex(pParams, 1);
 	
-	mailApplication *application = [SBApplication applicationWithBundleIdentifier:@"com.apple.mail"];
-	
-	SBElementArray *selection = [application selection];
-	
-	switch (Param1.getIntValue()) {
-  case 2:
-		{
-			NSArray *identifiers = [selection valueForKey:@"id"];
-			for (id identifier in identifiers) {
-				json_set_i(json, identifier);
-			}
-		}
-			break;
-  case 3:
-		{
-			NSArray *sources = [selection arrayByApplyingSelector:@selector(source)];
-			NSArray *identifiers = [selection valueForKey:@"id"];
-			
-			if([sources count] == [identifiers count])
+	@autoreleasepool
+	{
+		
+		mailApplication *application = [SBApplication applicationWithBundleIdentifier:@"com.apple.mail"];
+		
+		SBElementArray *selection = [application selection];
+		
+		switch (Param1.getIntValue()) {
+			case 2:
 			{
-				for(NSUInteger i = 0; i < [sources count];++i)
-				{
-					JSONNODE *n = json_new(JSON_NODE);
-					json_set_i(n, L"id", (NSNumber *)[identifiers objectAtIndex:i]);
-					json_set_s(n, L"source", (NSString *)[sources objectAtIndex:i]);
-					json_push_back(json, n);
+				NSArray *identifiers = [selection valueForKey:@"id"];
+				for (id identifier in identifiers) {
+					json_set_i(json, identifier);
 				}
 			}
-		}
-			break;
-  default:
-		{
-			NSArray *sources = [selection arrayByApplyingSelector:@selector(source)];
-			for (id source in sources) {
-				json_set_s(json, (NSString *)source);
+				break;
+			case 3:
+			{
+				NSArray *sources = [selection arrayByApplyingSelector:@selector(source)];
+				NSArray *identifiers = [selection valueForKey:@"id"];
+				
+				if([sources count] == [identifiers count])
+				{
+					for(NSUInteger i = 0; i < [sources count];++i)
+					{
+						JSONNODE *n = json_new(JSON_NODE);
+						json_set_i(n, L"id", (NSNumber *)[identifiers objectAtIndex:i]);
+						json_set_s(n, L"source", (NSString *)[sources objectAtIndex:i]);
+						json_push_back(json, n);
+						PA_YieldAbsolute();
+					}
+				}
 			}
+				break;
+			default:
+			{
+				NSArray *sources = [selection arrayByApplyingSelector:@selector(source)];
+				for (id source in sources) {
+					json_set_s(json, (NSString *)source);
+				}
+			}
+				break;
 		}
-			break;
-	}
+		
+	}/* necessary because 4D might reopen the DB without restarting */
 	
 	json_stringify(json, returnValue);
 	json_delete(json);
