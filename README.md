@@ -37,7 +37,6 @@ tell application "Mail"
 	set ss to {}
 	repeat with s in selection as list
 		copy {source:source of s, id:id of s} to the end of ss
-		set ss to ss & {source:source of s, id:id of s}
 	end repeat
 	ss
 end tell
