@@ -15,6 +15,73 @@ Get the source (MIME) of selected emails from Apple Mail via [Scripting Bridge](
 
 [2.0](https://github.com/miyako/4d-plugin-mail-applescript/releases/tag/2.0)
 
+### Manual source-version and release lifecycle
+
+**Bump version** is a manual patch/minor/major operation on an explicitly selected
+branch. It checks out the immutable dispatch `github.sha`, requires clean source
+metadata and an exact remote branch match, and commits only the three source
+metadata files. Its mandatory executable pre-push guard checks the advertised old
+SHA, literal new SHA/HEAD, exactly one direct parent, target branch and exactly one
+update. Late advances, ancestor rewinds, deletions and same-result races fail closed.
+The guard is checked both initially and immediately before pushing. The push is
+non-force, with `push.followTags=false` and `--no-follow-tags`; it creates no tags
+and does not trigger Build.
+
+The existing coordinated version contract is authoritative: all three Xcode
+configurations' `MARKETING_VERSION` and `CURRENT_PROJECT_VERSION`, source
+`Info.plist` and localized `English.lproj/InfoPlist.strings` must agree on strict
+`X.Y.Z`. Supported Xcode references are preserved and resolved; absent optional
+keys are not added. The old Bump header promised coordinated marketing/current
+versions, and modernization commit `181de63` set both to `2.0.0`; bump `cc6f0c0`
+advanced marketing/source plist to `2.0.1` but left current/localization stale.
+This migration repairs only those stale source fields to the existing `2.0.1`
+authority, without incrementing the release version. Prebuilt bundle metadata,
+4D databases/counters, localization schema, API/dependencies and Windows projects
+are excluded. Byte order marks, line endings, references and file modes are preserved.
+
+**Build** has only `workflow_dispatch`, with zero inputs and no automatic push,
+tag or PR trigger. Select the desired ref in Actions; every checkout uses that
+run's immutable `github.sha`. It validates source metadata and checks remote tags
+plus authenticated, paginated releases (including drafts) before native work.
+Publication is serialized repository-wide across branches without canceling a
+running Build. After all native/package/sign/notary/staple gates, it repeats the
+complete availability checks immediately before creating a new `vX.Y.Z` tag at
+the selected SHA. API/auth/network/malformed responses fail closed, including
+404 and failures on later pages. Tag creation is create-only and remotely
+verified; even a same-SHA race is rejected. Release creation is a separate POST
+with the exact tag/SHA/name, `draft=false`, `prerelease=false` and the original
+empty-notes policy. ZIP/DMG assets are uploaded separately to the returned new
+release ID, without replacement.
+
+The native job remains macOS-only: Apple Mail/ScriptingBridge, Cocoa/AppKit and
+CoreGraphics frameworks, the committed 4D API, universal arm64/x86_64 output,
+macOS 11.5 deployment target, resource/architecture checks, Developer ID signing,
+ZIP/DMG packaging, notarytool submission and DMG stapling are unchanged. There
+are no third-party prebuilt-library gates or Windows compilation to invent.
+The committed Windows64 binary, documentation and QuickLook resources ship as-is;
+only the stale MacOS binary directory and Default output are removed before
+building. Existing notarytool `--wait` submissions and DMG stapling remain the
+gates. Existing caveats: the job does not independently parse notarytool's
+`Accepted` status, the ZIP is not stapled (only the DMG is), and the prebuilt
+Windows payload is not rebuilt or architecture-verified. These are documented,
+not bypassed or silently changed; native execution is outside this migration.
+Signing requires the existing secret names `APPLE_DEVELOPER_ID_CERTIFICATE`,
+`APPLE_DEVELOPER_ID_CERTIFICATE_PASSWORD`, `KEYCHAIN_PASSWORD`,
+`NOTARYTOOL_APPLE_ID`, `NOTARYTOOL_TEAM_ID` and `NOTARYTOOL_PASSWORD`.
+
+**Recovery:** no publication step deletes, patches, clobbers, rolls back or
+retries remote state. If tag creation, release creation, verification or upload
+fails, inspect the error and retained remote tag/release/assets manually. A
+partial tag/release blocks another Build for that version; do not rerun expecting
+overwrite or automatic repair. Maintainers must explicitly resolve partial
+state under their release policy, or choose a new source version through Bump
+and dispatch a new Build. A branch that moved during Bump must be freshly
+selected for another dispatch.
+
+Local lifecycle checks (no native/signing execution):
+`python3 -B -m unittest discover -s .github/tests -v` and
+`actionlint .github/workflows/*.yml`.
+
 ## Syntax
 
 ```
