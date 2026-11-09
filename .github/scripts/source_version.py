@@ -108,7 +108,7 @@ def read(root=Path(".")):
         ("CFBundleShortVersionString", LOCALIZED_SHORT),
         ("CFBundleGetInfoString", LOCALIZED_INFO),
     ):
-        assignments = re.findall(rf"(?m)^[ \t]*{key}[ \t]*=", localized)
+        assignments = re.findall(rf'(?m)^[ \t]*(?:{key}|"{key}")[ \t]*=', localized)
         if len(assignments) != 1 or [m[2] for m in pattern.finditer(localized)] != [version]:
             raise ValueError("Localized source version is missing, invalid or has drifted")
     return version

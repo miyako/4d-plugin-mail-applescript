@@ -204,6 +204,22 @@ class SourceTests(unittest.TestCase):
                 source.bump("patch", self.root)
             self.assertEqual(before, {p: (self.root / p).read_bytes() for p in before})
 
+    def test_localized_quoted_duplicate_keys_rejected_without_writes(self):
+        path = self.root / source.LOCALIZED
+        original = path.read_bytes()
+        for key in ("CFBundleShortVersionString", "CFBundleGetInfoString"):
+            for version in (self.current, self.drift):
+                with self.subTest(key=key, version=version):
+                    value = version if key == "CFBundleShortVersionString" else (
+                        f"Mail (AppleScript) version {version}, Copyright 2018 miyako."
+                    )
+                    path.write_bytes(original + f'\n"{key}" \t= "{value}";\n'.encode())
+                    before = self.snapshot()
+                    with self.assertRaises(ValueError):
+                        source.read(self.root)
+                    self.assertEqual(before, self.snapshot())
+                    self.assert_rejected()
+
     def test_byte_preserving_endings_bom_and_modes(self):
         for newline in ("\n", "\r", "\r\n", "mixed"):
             for bom in (b"", b"\xef\xbb\xbf"):
